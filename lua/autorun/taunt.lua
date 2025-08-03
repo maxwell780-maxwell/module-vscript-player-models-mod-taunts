@@ -104,21 +104,6 @@ local VISUAL_EFFECTS = {
     blizzard_blue = "utaunt_innerblizzard_teamcolor_blue"
 }
 
-local taunt_russian_config = {
-    gesture = "taunt_russian",
-    speed = 1.0,
-    hasFaceFlex = true,
-    hasVoiceLines = false,
-    flexName = "happybig",
-    isLooping = true,
-    isConsoleCommand = true,
-    loopSound = true,
-    moveSpeed = 49.8,
-    allowMovement = true,
-    hideWorldModel = true
-}
-
-
 if SERVER then
     local tauntingPlayers = {}
 	local dosidoLooping = {} -- store loop sound handles
@@ -1130,5 +1115,6 @@ if SERVER then
         end
     end)
 end
+
 
 
