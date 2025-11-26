@@ -2,8 +2,16 @@ local GESTURE_SLOT = 3
 local TAUNT_MOVETYPE = MOVETYPE_NONE
 local NORMAL_MOVETYPE = MOVETYPE_WALK
 
--- Model and weapon configuration
-local MOBSTER_MODEL = "models/vip_mobster/player/mobster.mdl"
+local MOBSTER_MODEL = "models/vip_mobster/player/old/mobster.mdl"
+local MOBSTER_MODEL_NEW = "models/vip_mobster/player/mobster_new.mdl"
+local BRICK_MANN_MODEL = "models/alaxe/tf2/actors/brick_mann.mdl"
+local RESUP_MODEL = "models/player/resup_plyr.mdl"
+
+
+local function IsValidTauntModel(model)
+    local lower = string.lower(model)
+    return lower == string.lower(MOBSTER_MODEL) or lower == string.lower(BRICK_MANN_MODEL) or lower == string.lower(MOBSTER_MODEL_NEW) or lower == string.lower(RESUP_MODEL)
+end
 
 -- Taunt configurations
 local TAUNT_CONFIGS = { -- these are were the taunts are at it will look for a weapon and press g BAM taunting
@@ -22,6 +30,22 @@ local TAUNT_CONFIGS = { -- these are were the taunts are at it will look for a w
         hasFaceFlex = false,
         hasVoiceLines = false,
         flexName = nil
+    },
+    [4] = {
+		weapon = "brick_mann_swep",
+		gesture = "taunt03",
+		speed = 1.0,
+		hasFaceFlex = false,
+		hasVoiceLines = false,
+		flexName = nil
+    },
+    [5] = {
+		weapon = "resuply_swep",
+		gesture = "taunt01",
+		speed = 1.0,
+		hasFaceFlex = false,
+		hasVoiceLines = false,
+		flexName = nil
     },
     [3] = {
         weapon = "mobster_metalpipe",
@@ -103,6 +127,7 @@ local VISUAL_EFFECTS = {
     blizzard_red = "utaunt_innerblizzard_teamcolor_red",
     blizzard_blue = "utaunt_innerblizzard_teamcolor_blue"
 }
+
 
 if SERVER then
     local tauntingPlayers = {}
@@ -200,7 +225,8 @@ if SERVER then
                 
                 -- Check if valid for taunting
                 if not ply:Alive() then return end
-                if string.lower(ply:GetModel()) ~= string.lower(MOBSTER_MODEL) then return end
+				if not IsValidTauntModel(ply:GetModel()) then return end
+
                 if not ply:OnGround() then return end
                 
                 local weapon = ply:GetActiveWeapon()
@@ -291,7 +317,8 @@ if SERVER then
         if not IsValid(ply) or not ply:Alive() then return end
         if tauntCooldowns[ply] and CurTime() < tauntCooldowns[ply] then return end
         if tauntingPlayers[ply] then return end
-        if string.lower(ply:GetModel()) ~= string.lower(MOBSTER_MODEL) then return end
+		local mdl = string.lower(ply:GetModel())
+		if mdl ~= string.lower(MOBSTER_MODEL) and mdl ~= string.lower(BRICK_MANN_MODEL) and mdl ~= string.lower(RESUP_MODEL) then return end
         if not ply:OnGround() then
             net.Start("TF2_TauntError")
             net.WriteString("You cannot taunt while in the air!")
@@ -1115,6 +1142,9 @@ if SERVER then
         end
     end)
 end
+
+
+
 
 
 
