@@ -6,30 +6,46 @@ local MOBSTER_MODEL = "models/vip_mobster/player/old/mobster.mdl"
 local MOBSTER_MODEL_NEW = "models/vip_mobster/player/mobster_new.mdl"
 local BRICK_MANN_MODEL = "models/alaxe/tf2/actors/brick_mann.mdl"
 local RESUP_MODEL = "models/player/resup_plyr.mdl"
-
+local SAXTON01 = "models/player/saxton_hale.mdl"
+local SAXTON02 = "models/player/clone/saxton_hale_red_blu_green_yellow.mdl"
+local SAXTON03 = "models/vsh/player/winter/saxton_hale.mdl"
+local SAXTON04 = "models/subzero_saxton_hale.mdl"
+local SAXTON05 = "models/vsh/player/santa_hale.mdl"
+local SAXTON06 = "models/player/hell_hale.mdl"
+local SAXTON07 = "models/vsh/player/hell_hale.mdl"
+local SAXTON08 = "models/vsh/player/mecha_hale.mdl"
+local SAXTON09 = "models/vsh/player/saxton_hale.mdl"
+local SAXTON10 = "models/player/clone/doplaganger/blue_clolored_tf2_vscript_saxton_hale.mdl"
+local julius = "models/vip/player/julius/julius.mdl"
+local civilian = "models/player/doplaganger/clone_scary/civilian.mdl"
 
 local function IsValidTauntModel(model)
     local lower = string.lower(model)
-    return lower == string.lower(MOBSTER_MODEL) or lower == string.lower(BRICK_MANN_MODEL) or lower == string.lower(MOBSTER_MODEL_NEW) or lower == string.lower(RESUP_MODEL)
+    return lower == string.lower(MOBSTER_MODEL) or lower == string.lower(BRICK_MANN_MODEL) or lower == string.lower(civilian) or lower == string.lower(julius) or lower == string.lower(MOBSTER_MODEL_NEW) or lower == string.lower(RESUP_MODEL) or lower == string.lower(SAXTON01) or lower == string.lower(SAXTON02) or lower == string.lower(SAXTON03) or lower == string.lower(SAXTON04) or lower == string.lower(SAXTON05) or lower == string.lower(SAXTON06) or lower == string.lower(SAXTON07) or lower == string.lower(SAXTON08) or lower == string.lower(SAXTON09) or lower == string.lower(SAXTON10)
 end
 
 -- Taunt configurations
 local TAUNT_CONFIGS = { -- these are were the taunts are at it will look for a weapon and press g BAM taunting
     [1] = {
         weapon = "mobster_typewriter",
-        gesture = "taunt01",
-        speed = 0.79,
+            gesture = {
+        "taunt01",
+        "taunt01_alt"
+		},
+        speed = 0.5, 
         hasFaceFlex = true,
         hasVoiceLines = true,
-        flexName = "happybig"
+        flexName = "happybig",
+		customFlexEndTime = 2.7
     },
     [2] = {
         weapon = "mobster_moneybag",
         gesture = "taunt02",
         speed = 1.00,
-        hasFaceFlex = false,
-        hasVoiceLines = false,
-        flexName = nil
+		hasFaceFlex = true,          -- now true
+		hasVoiceLines = false,
+		flexName = "happybig",
+		flexDelay = 2.2               -- NEW: delay before applying flex
     },
     [4] = {
 		weapon = "brick_mann_swep",
@@ -47,6 +63,53 @@ local TAUNT_CONFIGS = { -- these are were the taunts are at it will look for a w
 		hasVoiceLines = false,
 		flexName = nil
     },
+    [8] = {
+		weapon = "weapon_umbrella",
+		gesture = "taunt01",
+		speed = 1.0,
+		hasFaceFlex = false,
+		hasVoiceLines = false,
+		flexName = nil,
+		hideWorldModel = true,
+		hasBodygroup = true,
+		bodygroupName = "money",
+		bodygroupValue = 1,
+		hasVCD = true,
+		vcdPath = "taunt01"  
+    },
+	[7] = {
+		weapon = "weapon_vip_swep",
+		gesture = "taunt03",
+		speed = 1.0,
+		hasFaceFlex = true,
+		hasVoiceLines = false,
+		flexName = "TH",
+		flexDelay = 0.1,
+		hideWorldModel = true,
+	
+		customSounds = {
+			"mvm/julius_v7/julius_specialcompleted-assistedkill01.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill02.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill03.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill04.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill05.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill06.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill07.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill08.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill09.mp3",
+			"mvm/julius_v7/julius_specialcompleted-assistedkill10.mp3"
+		}
+	},
+    [6] = {
+		weapon = "weapon_saxton_hale_swep",
+		gesture = "taunt01",
+		speed = 1.0,
+		hasFaceFlex = false, -- disabled for now
+		flexName = "OH",
+		flexDelay = 2.70,
+		hasVCD = true,
+		vcdPath = "taunt03_v1" -- we have to use the same copy file as civilian because i dont want to frick myself in making another file path because im lazy so we will use civilians scene path instead		
+    }, -- yes credits to https://github.com/Lambdagon/fc/blob/main/scenes/player/saxton/low/taunt03_v1.vcd thats where i found it
     [3] = {
         weapon = "mobster_metalpipe",
         gesture = "taunt05",
@@ -133,8 +196,9 @@ if SERVER then
     local tauntingPlayers = {}
 	local dosidoLooping = {} -- store loop sound handles
 	local tauntCooldowns = {}
-
 	
+    util.AddNetworkString("DEBUG_sax_idle_face_turnoff")
+	util.AddNetworkString("PlayCiviliantaunt01vcdply")
     util.AddNetworkString("TF2_StartTaunt")
     util.AddNetworkString("TF2_EndTaunt")
     util.AddNetworkString("TF2_TauntRequest")
@@ -152,47 +216,62 @@ if SERVER then
         end
     end
 	
-    local function StartFaceFlex(ply, flexName, duration)
-        if not IsValid(ply) or not flexName then return end
-        local flexID = ply:GetFlexIDByName(flexName)
-        if not flexID or flexID < 0 then return end
-        local flexStartTime = CurTime()
-        local flexUpDuration = 0.5
-        local flexDownStart = duration - 0.5
-        local flexDownDuration = 0.5
+local function StartFaceFlex(ply, flexName, duration, customEndTime)
+    if not IsValid(ply) or not flexName then return end
 
-        timer.Create("TF2_FaceFlex_" .. ply:SteamID64(), 0.05, 0, function()
-            if not IsValid(ply) or not tauntingPlayers[ply] then
-                timer.Remove("TF2_FaceFlex_" .. ply:SteamID64())
-                return
-            end
-            local elapsed = CurTime() - flexStartTime
-            local flexValue = 0
-            if elapsed <= flexUpDuration then
-                flexValue = math.ease.InOutQuad(elapsed / flexUpDuration)
-            elseif elapsed >= flexDownStart then
-                local downElapsed = elapsed - flexDownStart
-                flexValue = 1.0 - math.ease.InOutQuad(math.min(downElapsed / flexDownDuration, 1))
-            else
-                flexValue = 1.0
-            end
-            ply:SetFlexWeight(flexID, flexValue)
-            net.Start("TF2_FaceFlex")
+    local flexID = ply:GetFlexIDByName(flexName)
+    if not flexID or flexID < 0 then return end
+
+    local flexStartTime = CurTime()
+
+    local flexUpDuration = 0.5
+    local flexDownDuration = 0.5
+
+    -- Decide when flex should END
+    local flexEndTime = customEndTime or duration
+    local flexDownStart = math.max(flexEndTime - flexDownDuration, flexUpDuration)
+
+    timer.Create("TF2_FaceFlex_" .. ply:SteamID64(), 0.05, 0, function()
+        if not IsValid(ply) or not tauntingPlayers[ply] then
+            timer.Remove("TF2_FaceFlex_" .. ply:SteamID64())
+            return
+        end
+
+        local elapsed = CurTime() - flexStartTime
+        local flexValue = 0
+
+        if elapsed <= flexUpDuration then
+            flexValue = math.ease.InOutQuad(elapsed / flexUpDuration)
+        elseif elapsed >= flexDownStart then
+            local downElapsed = elapsed - flexDownStart
+            flexValue = 1.0 - math.ease.InOutQuad(math.min(downElapsed / flexDownDuration, 1))
+        else
+            flexValue = 1.0
+        end
+
+        ply:SetFlexWeight(flexID, flexValue)
+
+        net.Start("TF2_FaceFlex")
             net.WriteEntity(ply)
             net.WriteString(flexName)
             net.WriteFloat(flexValue)
-            net.Broadcast()
-            if elapsed >= duration then
-                ply:SetFlexWeight(flexID, 0)
-                net.Start("TF2_FaceFlex")
+        net.Broadcast()
+
+        -- HARD STOP
+        if elapsed >= flexEndTime then
+            ply:SetFlexWeight(flexID, 0)
+
+            net.Start("TF2_FaceFlex")
                 net.WriteEntity(ply)
                 net.WriteString(flexName)
                 net.WriteFloat(0)
-                net.Broadcast()
-                timer.Remove("TF2_FaceFlex_" .. ply:SteamID64())
-            end
-        end)
-    end
+            net.Broadcast()
+
+            timer.Remove("TF2_FaceFlex_" .. ply:SteamID64())
+        end
+    end)
+end
+
 
     hook.Add("PlayerButtonDown", "TF2_TauntCancelAndStart", function(ply, key)
         -- Handle RPS taunt cancellation (existing code)
@@ -377,66 +456,125 @@ if SERVER then
         end
     end)
 
-    function StartTaunt(ply, config)
-        if not IsValid(ply) or not config then return end
-        local gestureID = ply:LookupSequence(config.gesture)
-        if not gestureID or gestureID < 0 then return end
-        
-        local originalDuration = ply:SequenceDuration(gestureID)
-        local adjustedDuration = originalDuration / config.speed
-        
-        tauntingPlayers[ply] = {
-            gestureID = gestureID,
-            startTime = CurTime(),
-            duration = adjustedDuration,
-            originalDuration = originalDuration,
-            speed = config.speed,
-            config = config
-        }
-        
-        -- Handle movement type based on config
-        if config.allowMovement then
-            SetRussianTauntMovement(ply, true)
-        else
-            ply:SetMoveType(TAUNT_MOVETYPE)
+function StartTaunt(ply, config)
+    if not IsValid(ply) or not config then return end
+
+    -- Resolve gesture (string or table)
+    local gestureName = config.gesture
+    if istable(gestureName) then
+        gestureName = table.Random(gestureName)
+    end
+
+    local gestureID = ply:LookupSequence(gestureName)
+    if not gestureID or gestureID < 0 then return end
+
+    local originalDuration = ply:SequenceDuration(gestureID)
+    local adjustedDuration = originalDuration / config.speed
+
+    tauntingPlayers[ply] = {
+        gestureID = gestureID,
+        startTime = CurTime(),
+        duration = adjustedDuration,
+        originalDuration = originalDuration,
+        speed = config.speed,
+        config = config
+    }
+
+    -- Movement
+    if config.allowMovement then
+        SetRussianTauntMovement(ply, true)
+    else
+        ply:SetMoveType(TAUNT_MOVETYPE)
+    end
+
+    -- Hide world model
+    if config.hideWorldModel then
+        SetWorldModelHidden(ply, true)
+    end
+if config.weapon == "weapon_saxton_hale_swep" then
+    net.Start("DEBUG_sax_idle_face_turnoff")
+    net.WriteBool(false) -- false = turn OFF idle flexes
+    net.Send(ply)
+end
+
+    -- NEW: Handle bodygroup changes
+    if config.hasBodygroup and config.bodygroupName then
+        local bodygroupID = ply:FindBodygroupByName(config.bodygroupName)
+        if bodygroupID >= 0 then
+            ply:SetBodygroup(bodygroupID, config.bodygroupValue or 1)
         end
-        
-        if config.hideWorldModel then
-            SetWorldModelHidden(ply, true)
-        end
-        
-        -- Handle sounds
-        if config == taunt_laugh_config then
-            ply:EmitSound("mvm/mobster_emergent_r1b/mobster_laugh01.mp3", 75, 100, 1, CHAN_VOICE)
-        elseif config.hasVoiceLines then
-            local randomVoiceLine = TAUNT_VOICE_LINES[math.random(1, #TAUNT_VOICE_LINES)]
-            ply:EmitSound(randomVoiceLine, 75, 100, 1, CHAN_VOICE)
-        end
-        
-        if config.hasFaceFlex and config.flexName then
-            StartFaceFlex(ply, config.flexName, adjustedDuration)
-        end
-        
-        net.Start("TF2_StartTaunt")
+    end
+	
+    -- NEW: Play VCD scene
+    if config.hasVCD and config.vcdPath then
+        net.Start("PlayCiviliantaunt01vcdply")
+        net.WriteEntity(ply)
+        net.WriteString(config.vcdPath)
+        net.Broadcast()
+    end
+-- Custom taunt sounds now lets less ugly
+	if config.customSounds then
+		local snd = config.customSounds[math.random(#config.customSounds)]
+		ply:EmitSound(snd, 75, 100, 1, CHAN_VOICE)
+	elseif config == taunt_laugh_config then
+		ply:EmitSound("mvm/mobster_emergent_r1b/mobster_laugh01.mp3", 75, 100, 1, CHAN_VOICE)
+	elseif config.hasVoiceLines then
+		local randomVoiceLine = TAUNT_VOICE_LINES[math.random(#TAUNT_VOICE_LINES)]
+		ply:EmitSound(randomVoiceLine, 75, 100, 1, CHAN_VOICE)
+	end
+
+
+-- Face flex
+if config.hasFaceFlex and config.flexName then
+    local flexDelay = config.flexDelay or 0  -- fallback to 0 if nil
+
+    if flexDelay > 0 then
+        -- Delay before starting the flex
+        timer.Simple(flexDelay, function()
+            if IsValid(ply) and tauntingPlayers[ply] then
+                StartFaceFlex(
+                    ply,
+                    config.flexName,
+                    adjustedDuration,           -- total duration of gesture
+                    config.customFlexEndTime    -- optional custom end time
+                )
+            end
+        end)
+    else -- very fugly code
+        -- Start immediately
+        StartFaceFlex(
+            ply,
+            config.flexName,
+            adjustedDuration,               -- total duration
+            config.customFlexEndTime        -- optional custom end time
+        )
+    end
+end
+
+
+    -- NET message (only once, using gestureName)
+    net.Start("TF2_StartTaunt")
         net.WriteEntity(ply)
         net.WriteInt(gestureID, 16)
         net.WriteFloat(adjustedDuration)
         net.WriteFloat(config.speed)
-        net.WriteString(config.gesture)
+        net.WriteString(gestureName) -- ALWAYS the resolved string
         net.WriteBool(config.hasFaceFlex)
         if config.hasFaceFlex then
             net.WriteString(config.flexName or "")
         end
-        net.Broadcast()
-        
-        if not config.isLooping then
-            timer.Create("TF2_Taunt_Backup_" .. ply:SteamID64(), adjustedDuration + 0.1, 1, function()
-                if IsValid(ply) and tauntingPlayers[ply] then
-                    EndTaunt(ply)
-                end
-            end)
-        end
+    net.Broadcast()
+
+    -- Cleanup timer
+    if not config.isLooping then
+        timer.Create("TF2_Taunt_Backup_" .. ply:SteamID64(), adjustedDuration + 0.1, 1, function()
+            if IsValid(ply) and tauntingPlayers[ply] then
+                EndTaunt(ply)
+            end
+        end)
     end
+end
+
     
     -- Update the EndTaunt function
     function EndTaunt(ply)
@@ -457,11 +595,26 @@ if SERVER then
                 end
             end
         end
+		
+if tauntData and tauntData.config and tauntData.config.weapon == "weapon_saxton_hale_swep" then
+    net.Start("DEBUG_sax_idle_face_turnoff")
+    net.WriteBool(true) -- true = turn ON idle flexes
+    net.Send(ply)
+end
+
         
         tauntingPlayers[ply] = nil
         
 		ply:SetMoveType(MOVETYPE_WALK)
 
+		-- NEW: Reset bodygroup to 0
+		if tauntData and tauntData.config and tauntData.config.hasBodygroup and tauntData.config.bodygroupName then
+			local bodygroupID = ply:FindBodygroupByName(tauntData.config.bodygroupName)
+			if bodygroupID >= 0 then
+				ply:SetBodygroup(bodygroupID, 0)
+			end
+		end
+    
         
         if tauntData and tauntData.config and tauntData.config.hideWorldModel then
             SetWorldModelHidden(ply, false)
@@ -474,6 +627,26 @@ if SERVER then
         net.WriteEntity(ply)
         net.Broadcast()
     end
+end
+
+if CLIENT then
+    net.Receive("DEBUG_sax_idle_face_turnoff", function()
+        local enabled = net.ReadBool()
+        LocalPlayer():ConCommand("DEBUG_sax_idle_face_turnoff " .. (enabled and "1" or "0"))
+        print("[DEBUG] Saxton Hale idle face system set to " .. (enabled and "ON" or "OFF"))
+    end)
+end
+
+
+-- Client-side receiver for VCD playback
+if CLIENT then
+    net.Receive("PlayCiviliantaunt01vcdply", function()
+        local ent = net.ReadEntity()
+        local vcdPath = net.ReadString()
+        if IsValid(ent) then
+            ClientsideScene("scenes/player/civilian/low/" .. vcdPath .. ".vcd", ent)
+        end
+    end)
 end
 
 if CLIENT then
@@ -490,6 +663,7 @@ if CLIENT then
 end
 
 if CLIENT then
+
     local tauntingPlayers = {}
     local freelookEnabled = false
     local tauntEntity = nil
@@ -1142,9 +1316,3 @@ if SERVER then
         end
     end)
 end
-
-
-
-
-
-
